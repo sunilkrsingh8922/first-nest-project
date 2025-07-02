@@ -32,7 +32,7 @@ export class LoginService {
 
   }
 
-  async login(signupDto: CreateLoginDto){
+  async login(signupDto: CreateLoginDto) {
     var username= await this.signUpModel.findOne({username:signupDto.username});
     var password= await this.signUpModel.findOne({password:signupDto.password});
     
