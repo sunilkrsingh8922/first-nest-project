@@ -1,24 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('NestJS API')
-    .setDescription('Auto-generated Swagger documentation')
-    .setVersion('1.0')
-    .addTag('API') // Optional grouping
-    .build();
+  // const config = new DocumentBuilder()
+  //   .setTitle('My API')
+  //   .setDescription('API docs')
+  //   .setVersion('1.0')
+  //   .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); // Swagger UI will be served at /api
+  // const document = SwaggerModule.createDocument(app, config);
+  // SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000, '0.0.0.0');
-  Logger.log("✅ Application running on port 3000");
-  console.log("🌐 Swagger UI available at /api");
+  await app.listen(3000,'0.0.0.0');
 }
+
 bootstrap();
