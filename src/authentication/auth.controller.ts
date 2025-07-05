@@ -28,9 +28,9 @@ export class LoginController {
     return this.loginService.login(loginDto);
   }
   
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.loginService.findOne(+id);
+  @Get('findAll')
+  findOne() {
+    return this.loginService.findAll();
   }
 
   @Patch(':id')
@@ -40,6 +40,6 @@ export class LoginController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.loginService.remove(+id);
+    return this.loginService.remove(id);
   }
 }

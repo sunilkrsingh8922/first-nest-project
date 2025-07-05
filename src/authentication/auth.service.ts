@@ -7,11 +7,11 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/LoginDto.dto';
 import { CreateRegisterDto } from './dto/create-login.dto';
+import { isValidObjectId } from 'mongoose';
 
 @Injectable()
 export class LoginService {
   constructor(
-    // private usersService: UsersService, 
     private jwtService: JwtService
   ) {}
 
@@ -21,7 +21,7 @@ export class LoginService {
 
     var log= await this.signUpModel.findOne({username:createRegisterDto.username});
     if(log){return {
-      "message":"user extested"
+      "message":"user already exist"
      } }; 
      const hashedPassword = await bcrypt.hash(createRegisterDto.password, 10);
     // var user= await this.signUpModel.create(CreateRegisterDto);
@@ -36,8 +36,6 @@ export class LoginService {
   const user = await this.signUpModel
     .findOne({ useremail: loginDto.useremail })
     .select('+password'); // ✅ include password field if excluded in schema
-
-  console.log('User found:', user);
 
   // ✅ Check if user exists first
   if (!user) {
@@ -64,8 +62,8 @@ export class LoginService {
 
 
 
-  findAll() {
-    return `This action returns all login`;
+  async findAll() {
+    return await this.signUpModel.find().select('-password');
   }
 
   findOne(id: number) {
@@ -76,7 +74,16 @@ export class LoginService {
     return `This action updates a #${id} login`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} login`;
-  }
+  async remove(id: string) {
+    if (!isValidObjectId(id)) {
+      return { message: 'Invalid user ID format' };
+    }
+    const result = await this.signUpModel.deleteOne({ _id: id });
+
+    if (result.deletedCount === 0) {
+      return { message: 'User not found or already deleted' };
+    }
+
+    return { message: 'User deleted successfully' };
+  } 
 }
