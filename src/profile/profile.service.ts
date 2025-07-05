@@ -18,16 +18,28 @@ export class ProfileService {
     return  profile.save();
   }
 
-  async getAllProgile() {
-    var profileAll= await this.profile.find();
-    if(profileAll)
-      return profileAll;
- 
-    // return `This action returns all profile`;
+  async getAllProfiles() {
+    try {
+      const profiles = await this.profile.find().select('-password'); // ✅ optionally exclude sensitive fields
+      if (!profiles.length) {
+        return { message: 'No profiles found' };
+      }
+      return profiles;
+    } catch (error) {
+      throw new Error(`Failed to fetch profiles: ${error.message}`);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} profile`;
+  async findById(id: string) {
+    try {
+      const profile = await this.profile.findById(id).select('-password'); // Exclude password
+      if (!profile) {
+        return { message: 'Profile not found' };
+      }
+      return profile;
+    } catch (error) {
+      throw new Error(`Failed to fetch profile: ${error.message}`);
+    }
   }
 
   update(id: number, updateProfileDto: UpdateProfileDto) {

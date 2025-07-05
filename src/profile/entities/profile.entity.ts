@@ -4,7 +4,7 @@ import { Init } from "v8";
 export class Profile {
 
     @Prop({require: true})
-    username: string;
+    useremail: string;
 
     @Prop({required: true})
     dob: string;

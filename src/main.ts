@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 
 async function bootstrap() {
-   const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new ValidationPipe());
 
@@ -17,10 +17,9 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'Authorization',
         in: 'header',
       },
-      'access-token', // key used in @ApiBearerAuth()
+      'authorization',
     )
     .build();
 
@@ -29,7 +28,7 @@ async function bootstrap() {
 
   const port = 3000;
   await app.listen(port);
-   console.log(`🚀 Server is running on: http://localhost:${port}`);
+  console.log(`🚀 Server is running on: http://localhost:${port}`);
   console.log(`📚 Swagger docs available at: http://localhost:${port}/api`);
 }
 bootstrap();
