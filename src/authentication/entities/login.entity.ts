@@ -5,7 +5,7 @@ export type LoginDocument = HydratedDocument<Login>;
 export class Login {
     
     @Prop({required :true})
-    username:string;
+    useremail:string;
 
     @Prop({required :true})
     password:string;

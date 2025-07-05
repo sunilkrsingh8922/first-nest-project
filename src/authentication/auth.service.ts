@@ -1,10 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { CreateLoginDto } from './dto/create-login.dto';
 import { UpdateLoginDto } from './dto/update-login.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Login } from './entities/login.entity';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { LoginDto } from './dto/LoginDto.dto';
+import { CreateRegisterDto } from './dto/create-login.dto';
 
 @Injectable()
 export class LoginService {
@@ -15,39 +17,52 @@ export class LoginService {
 
   @InjectModel(Login.name) private signUpModel: Model<Login>;
 
-  async create(createLoginDto: CreateLoginDto,) {
+  async create(createRegisterDto: CreateRegisterDto,) {
 
-    var log= await this.signUpModel.findOne({username:createLoginDto.username});
+    var log= await this.signUpModel.findOne({username:createRegisterDto.username});
     if(log){return {
       "message":"user extested"
-     } };
-     console.log("ggdgd");
-    console.log(createLoginDto.password);
-
-     console.log(createLoginDto.username);
-
-    var user= await this.signUpModel.create(createLoginDto);
-
-    return   user.save();
-
+     } }; 
+     const hashedPassword = await bcrypt.hash(createRegisterDto.password, 10);
+    // var user= await this.signUpModel.create(CreateRegisterDto);
+    const newUser = new this.signUpModel({
+      ...createRegisterDto,
+      password: hashedPassword,
+    });
+    return   newUser.save();
   }
 
-  async login(signupDto: CreateLoginDto) {
-    var username= await this.signUpModel.findOne({username:signupDto.username});
-    var password= await this.signUpModel.findOne({password:signupDto.password});
-    
-    if(!username){
-      return {"message":"User doen't exist"}
-    } else if(!password){
-      return {"message":"Password mismatch"}
-    } 
+ async login(loginDto: LoginDto) {
+  const user = await this.signUpModel
+    .findOne({ useremail: loginDto.useremail })
+    .select('+password'); // ✅ include password field if excluded in schema
 
-    const payload = { username: username.username, password: username.password };
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-      'message': "Login Success"
-    };
+  console.log('User found:', user);
+
+  // ✅ Check if user exists first
+  if (!user) {
+    return { message: "User doesn't exist" };
   }
+
+  // ✅ Compare provided password with hashed password
+  const isPasswordMatch = await bcrypt.compare(loginDto.password, user.password);
+
+  if (!isPasswordMatch) {
+    return { message: "Password mismatch" };
+  }
+
+  const payload = {
+    sub: user._id,
+    useremail: user.useremail, // prefer using `user.useremail` directly
+  };
+
+  return {
+    access_token: await this.jwtService.signAsync(payload),
+    message: "Login Success",
+  };
+}
+
+
 
   findAll() {
     return `This action returns all login`;
