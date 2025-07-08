@@ -41,7 +41,7 @@ export class AuthGuard implements CanActivate {
     const [type, token] = authHeader.split(' ');
 
     if (type !== 'Bearer' || !token) {
-      console.warn('❌ Invalid token format. Expected: Bearer <token>');
+      console.warn('Invalid token format. Expected: Bearer <token>');
       return undefined;
     }
 

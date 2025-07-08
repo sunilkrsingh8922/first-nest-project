@@ -1,11 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { ProfileService } from './profile.service';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Express } from 'express';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  UploadedFile,
+  UseInterceptors,
+  Res,
+  UseGuards,
+  Body,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { Response } from 'express';
 import { AuthGuard } from 'src/authentication/auth.guard';
-import { Request } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger/dist/decorators/api-bearer.decorator';
-import { ApiParam } from '@nestjs/swagger/dist/decorators';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger/dist/decorators';
+import { CreateProfileDto } from './dto/create-profile.dto';
+import { ProfileService } from './profile.service';
+import { Request } from 'express';
+import { Req } from '@nestjs/common';
 
 @Controller("profile")
 export class ProfileController {
@@ -21,18 +35,53 @@ export class ProfileController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth('authorization') 
   @Get()
-  getProfile(@Request() req) {
+  getProfile(@Req() req) {
     // req.user was added in AuthGuard after verifying JWT
     return this.profileService.getAllProfiles();
     // return this.profileService.findById(req.user.sub).select('-password');
   }
 
-  @UseGuards(AuthGuard)
   @ApiBearerAuth('authorization')
-  @Get(':id')
-  @ApiParam({ name: 'id', description: 'User profile ID' })
-  getProfileById(@Param('id') id: string) {
-    return this.profileService.findById(id);
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('authorization') 
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/profile',
+        filename: (req, file, cb) => {
+          // Temporary filename
+          cb(null, `temp-${Date.now()}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+
+  uploadProfileImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) return { message: 'No file uploaded' };
+
+    return {
+      message: 'Image uploaded successfully', 
+      filename: file.filename,
+      path: `/profile/image/${file.filename}`,
+    };
   }
- 
+
+  @Get('image/:filename')
+  getProfileImage(@Param('filename') filename: string, @Res() res: Response) {
+    return res.sendFile(filename, { root: './uploads/profile' });
+  }
 }
